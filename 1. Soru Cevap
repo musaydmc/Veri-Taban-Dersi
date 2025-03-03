@@ -1,0 +1,79 @@
+Geleneksel dosyalama sistemlerinin çalışma şeklini açıklayarak bildiğiniz bir programlama dili yardımıyla txt dosyadan veri okumak ve veri yazmak için bir uygulama geliştiriniz.
+
+#include <stdio.h>
+#include <string.h>
+
+void veri_okuma(char dosya_adi[]) {
+    FILE *dosya = fopen(dosya_adi, "r"); // Dosyayı okuma modunda aç
+    if (dosya == NULL) {
+        printf("Dosya acilamadi!\n");
+        return;
+    }
+
+    char satir[256];  // Satırları tutmak için dizi
+    printf("Dosya İçeriği:\n");
+    while (fgets(satir, sizeof(satir), dosya)) {
+        printf("%s", satir);  // Dosyadaki her satırı yazdır
+    }
+    fclose(dosya);  // Dosyayı kapat
+}
+
+void veri_yazma(char dosya_adi[], char yeni_veri[]) {
+    FILE *dosya = fopen(dosya_adi, "a"); // Dosyayı ekleme modunda aç
+    if (dosya == NULL) {
+        printf("Dosya acilamadi!\n");
+        return;
+    }
+
+    fprintf(dosya, "%s\n", yeni_veri);  // Yeni veriyi dosyaya ekle
+    printf("Veri basariyla eklendi!\n");
+    fclose(dosya);  // Dosyayı kapat
+}
+
+void veri_guncelleme(char dosya_adi[], char eski_veri[], char yeni_veri[]) {
+    FILE *dosya = fopen(dosya_adi, "r+");  // Dosyayı okuma ve yazma modunda aç
+    if (dosya == NULL) {
+        printf("Dosya acilamadi!\n");
+        return;
+    }
+
+    char satir[256];
+    long int pozisyon;
+    int bulundu = 0;
+
+    // Dosyadaki her satırı oku
+    while (fgets(satir, sizeof(satir), dosya)) {
+        pozisyon = ftell(dosya);  // Mevcut dosya konumunu al
+        if (strstr(satir, eski_veri) != NULL) {  // Eski veriyi bul
+            fseek(dosya, pozisyon - strlen(satir), SEEK_SET);  // Eski verinin başına git
+            fprintf(dosya, "%s\n", yeni_veri);  // Eski veriyi yeni veriyle değiştir
+            bulundu = 1;
+            break;
+        }
+    }
+
+    if (bulundu) {
+        printf("Veri basariyla guncellendi!\n");
+    } else {
+        printf("Eski veri bulunamadi!\n");
+    }
+    fclose(dosya);  // Dosyayı kapat
+}
+
+int main() {
+    char dosya_adi[] = "ogrenciler.txt";  // Kullanılacak dosya adı
+
+    // 1. Adım: Dosyadaki veriyi oku
+    veri_okuma(dosya_adi);
+
+    // 2. Adım: Dosyaya yeni veri ekle
+    veri_yazma(dosya_adi, "Ali Veli, 20, Bilgisayar Mühendisliği");
+
+    // 3. Adım: Dosyadaki veriyi güncelle
+    veri_guncelleme(dosya_adi, "Ali Veli", "Ali Veli Yılmaz");
+
+    // Sonra tekrar dosyayı oku
+    veri_okuma(dosya_adi);
+
+    return 0;
+}
